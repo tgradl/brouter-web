@@ -195,7 +195,14 @@
       "trekking-nosteps": "Trekkingrad (keine Treppen)",
       "trekking-steep": "Trekkingrad (steil)",
       "vm-forum-liegerad-schnell": "Liegerad (schnell)",
-      "vm-forum-velomobil-schnell": "Velomobil (schnell)"
+      "vm-forum-velomobil-schnell": "Velomobil (schnell)",
+      "RunProfiles/TrailRun-Alpine-SAC4-SHRP-offroad" : "Trailrunning (SAC4)",  
+      "RunProfiles/Run-SHRP" : "Laufen",
+      "HikeProfiles/Walking" : "Gehen",
+      "BikeProfiles/BikeProfiles/fastbike-default" : "Rennrad",
+      "BikeProfiles/BikeProfiles/fastbike-low-traffic" : "Rennrad (wenig Verkehr)",
+      "BikeProfiles/BikeProfiles/fastbike-very-low-traffic": "Rennrad (sehr wenig Verkehr)"
+
     },
     "profile-tooltip": "\n({{key}} Taste zum Umschalten)"
   },
