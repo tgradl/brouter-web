@@ -199,9 +199,9 @@
       "RunProfiles/TrailRun-Alpine-SAC4-SHRP-offroad" : "Trailrunning (SAC4)",  
       "RunProfiles/Run-SHRP" : "Laufen",
       "HikeProfiles/Walking" : "Gehen",
-      "BikeProfiles/BikeProfiles/fastbike-default" : "Rennrad",
-      "BikeProfiles/BikeProfiles/fastbike-low-traffic" : "Rennrad (wenig Verkehr)",
-      "BikeProfiles/BikeProfiles/fastbike-very-low-traffic": "Rennrad (sehr wenig Verkehr)"
+      "BikeProfiles/fastbike-default" : "Rennrad",
+      "BikeProfiles/fastbike-low-traffic" : "Rennrad (wenig Verkehr)",
+      "BikeProfiles/fastbike-very-low-traffic": "Rennrad (sehr wenig Verkehr)"
 
     },
     "profile-tooltip": "\n({{key}} Taste zum Umschalten)"
