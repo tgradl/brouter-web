@@ -216,8 +216,12 @@
       "HikeProfiles/Walking" : "Gehen",
       "BikeProfiles/fastbike-default" : "Rennrad",
       "BikeProfiles/fastbike-low-traffic" : "Rennrad (wenig Verkehr)",
-      "BikeProfiles/fastbike-very-low-traffic": "Rennrad (sehr wenig Verkehr)"
-
+      "BikeProfiles/fastbike-very-low-traffic": "Rennrad (sehr wenig Verkehr)",
+      "HikeProfiles/Hiking-SAC2-SHRP" : "Wandern (SAC2)",
+      "HikeProfiles/Hiking-Mountain-SAC3-SHRP" : "Bergwandern (SAC3)",
+      "HikeProfiles/Hiking-Alpine-SAC4-SHRP" : "Bergsteigen (SAC4)",
+      "HikeProfiles/Hiking-Alpine-SAC5-SHRP" : "Bergsteigen (SAC5)",
+      "HikeProfiles/Hiking-Alpine-SAC6-SHRP" : "Bergsteigen (SAC6)",
     },
     "profile-tooltip": "\n({{key}} Taste zum Umschalten)"
   },
