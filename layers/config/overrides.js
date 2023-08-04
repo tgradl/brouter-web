@@ -147,10 +147,26 @@ BR.confLayers.getPropertyOverrides = function() {
         },
         'topplus-open': {
             'country_code': 'DE',
-            'mapUrl': 'http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_user_id=0&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=41',
+            'mapUrl': 'https://gdz.bkg.bund.de/index.php/default/wmts-topplusopen-wmts-topplus-open.html',
             'worldTiles': true // World -z9, Europe -z14
         },
-
+        'ignf-aerial': {
+            'country_code': 'FR',
+            'nameShort': 'IGNF Photos',
+            'mapUrl': 'https://www.geoportail.gouv.fr/carte?c={lon},{lat}&z={zoom}&l0=ORTHOIMAGERY.ORTHOPHOTOS::GEOPORTAIL:OGC:WMTS(1)&permalink=yes',
+            'worldTiles': true // -z12
+        },
+        'ignf-map': {
+            'country_code': 'FR',
+            'nameShort': 'IGNF Plan',
+            'mapUrl': 'https://www.geoportail.gouv.fr/carte?c={lon},{lat}&z={zoom}&l0=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2::GEOPORTAIL:OGC:WMTS(1)&permalink=yes',
+            'worldTiles': true // -z7
+        },
+        'ignf-scan25': {
+            'country_code': 'FR',
+            'nameShort': 'IGNF Topo',
+            'mapUrl': 'https://www.geoportail.gouv.fr/carte?c={lon},{lat}&z={zoom}&l0=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR::GEOPORTAIL:OGC:WMTS(1)&permalink=yes',
+        },
         'OpenStreetMap-turistautak': {
             'nameShort': 'OSM Turistautak',
             'mapUrl': 'https://turistautak.openstreetmap.hu/?zoom={zoom}&lat={lat}&lon={lon}&layers=0B00F'
@@ -216,7 +232,11 @@ BR.confLayers.getPropertyOverrides = function() {
             'nameShort': 'MTB',
             'mapUrl': 'http://mtb.waymarkedtrails.org/#?map={zoom}!{lat}!{lon}'
         },
-        'mapillary-coverage-raster': {
+        'openrailwaymap': {
+            'name': 'OpenRailwayMap',
+            'mapUrl': 'https://www.openrailwaymap.org/?style=standard&lat={lat}&lon={lon}&zoom={zoom}' 
+        },
+        'mapillary-coverage': {
             'nameShort': 'Mapillary',
             'mapUrl': 'https://www.mapillary.com/app/?lat={lat}&lng={lon}&z={zoom}&menu=false'
         },
@@ -248,5 +268,8 @@ BR.confLayers.getPropertyOverrides = function() {
             'nameShort': 'CyclOSM',
             'mapUrl': 'https://www.cyclosm.org/#map={zoom}/{lat}/{lon}/cyclosm'
         },
+        'terrarium-hillshading': {
+            'name': i18next.t('map.layer.hillshading')
+        }
     };
 };

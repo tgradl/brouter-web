@@ -10,7 +10,7 @@ BR.tracksLoader = function (map, layersControl, routing, pois) {
         options: {
             // `layer` allows to use a customized version of `L.geoJson` with the same signature
             layer: createGeoJsonLayer,
-            layerOptions: BR.Track.getGeoJsonOptions(layersControl),
+            layerOptions: BR.Track.getGeoJsonOptions(layersControl, true),
             addToMap: false,
             // File size limit in kb (default: 1024) ?
             fileSizeLimit: BR.conf.trackSizeLimit || 1024 * 10,
@@ -70,6 +70,11 @@ BR.tracksLoader = function (map, layersControl, routing, pois) {
             }
         },
     });
+
+    // make sure tracks are always shown below route by adding a custom pane below `leaflet-overlay-pane`
+    map.createPane('tracks');
+    map.getPane('tracks').style.zIndex = 350;
+
     var tracksLoaderControl = new TracksLoader();
     tracksLoaderControl.addTo(map);
 

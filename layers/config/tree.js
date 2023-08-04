@@ -48,6 +48,13 @@ BR.confLayers.tree = {
             },
             'topplus-open',
             {
+                'FR': [
+                    'ignf-aerial',
+                    'ignf-map',
+                    'ignf-scan25',
+                ]
+            },
+            {
                 'IL': [
                     'Israel_Hiking',
                     'Israel_MTB',
@@ -68,11 +75,12 @@ BR.confLayers.tree = {
     },
     'overlays': {
         'worldwide': [
-            'HikeBike.HillShading',
+            'terrarium-hillshading',
             'Waymarked_Trails-Cycling',
             'Waymarked_Trails-Hiking',
             'Waymarked_Trails-MTB',
-            'mapillary-coverage-raster',
+            'openrailwaymap',
+            'mapillary-coverage',
             'osm-notes'
         ],
         'country': [
@@ -120,6 +128,7 @@ BR.confLayers.tree = {
                 'restaurant',
             ],
             'transportation': [
+                'bicycle_charging_station',
                 'bicycle_parking',
                 'bicycle_rental',
                 'bicycle_repair_station',

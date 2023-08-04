@@ -16,5 +16,11 @@
 
         // OpenMapSurfer (OpenRouteService API), https://openrouteservice.org/plans/
         openrouteservice: '',
+
+        // Mapillary, https://www.mapillary.com/dashboard/developers
+        mapillary: ``,
+
+        // IGN France (for Scan25 base layer), https://geoservices.ign.fr/services-web-issus-des-scans-ign
+        ignf: '',
     };
 })();

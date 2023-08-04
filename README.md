@@ -21,8 +21,8 @@ https://brouter.de
 
 General BRouter discussions/questions, support:
 
--   [`#brouter` on IRC OFTC](https://webchat.oftc.net/?channels=#brouter). You can also use [Riot](https://riot.im/app/#/room/#_oftc_#brouter:matrix.org).
 -   [Google Group](https://groups.google.com/group/osm-android-bikerouting)
+-   [`#brouter` on Matrix](https://matrix.to/#/#_oftc_#brouter:matrix.org) ([Element](https://app.element.io/#/room/#_oftc_#brouter:matrix.org)).
 
 ## Translating
 
@@ -142,3 +142,11 @@ Copyright (c) 2018 Norbert Renner and [contributors](https://github.com/nrenner/
     [CC0-1.0 License](https://github.com/ideditor/temaki/blob/main/LICENSE.md)
 -   [leaflet-osm-notes](https://github.com/osmlab/leaflet-osm-notes)
     [The Unlicense](https://github.com/osmlab/leaflet-osm-notes/blob/gh-pages/LICENSE)
+-   [Fetch polyfill](https://github.com/Github/fetch)  
+    Copyright (c) 2014-2016 GitHub, Inc.; [MIT License](https://github.com/github/fetch/blob/master/LICENSE)
+-   [qrcodejs](https://github.com/llyys/qrcodejs)
+    Copyright (c) 2012 davidshimjs [The MIT License](https://github.com/llyys/qrcodejs/blob/master/LICENSE)
+-   [Bootstrap Icons](https://github.com/twbs/icons)
+    Copyright (c) 2019-2023 The Bootstrap Authors [The MIT License](https://github.com/twbs/icons/blob/main/LICENSE)
+-   [compare-versions](https://github.com/omichelsen/compare-versions)
+    Copyright (c) 2015-2021 Ole Michelsen [The MIT License](https://github.com/omichelsen/compare-versions/blob/main/LICENSE)

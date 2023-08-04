@@ -27,8 +27,13 @@ BR.Export = L.Class.extend({
 
         this.exportButton.on('click', L.bind(this._generateTrackname, this));
         L.DomUtil.get('submitExport').onclick = L.bind(this._export, this);
+        L.DomUtil.get('serverExport').onclick = L.bind(this._exportServer, this);
 
         L.DomEvent.addListener(document, 'keydown', this._keydownListener, this);
+
+        $('#export').on('show.bs.modal', this._warnDownload.bind(this));
+        $('#export input[name=format]').on('change', this._warnDownload.bind(this));
+        $('#export').on('show.bs.modal', this._turnInstructionInfo.bind(this));
 
         this.update([]);
     },
@@ -44,7 +49,57 @@ BR.Export = L.Class.extend({
         }
     },
 
-    _export: function (e) {
+    _warnDownload: function () {
+        const hasBeeline = BR.Routing.hasBeeline(this.segments);
+        const isFit = $('#format-fit').prop('checked');
+        $('#export-download-warning').prop('hidden', !hasBeeline && !isFit);
+        let title = 'Download from server (deprecated)';
+        if (hasBeeline) {
+            title = '[Warning: straight lines not supported] ' + title;
+        }
+        if (isFit) {
+            title = '[Warning: FIT not supported] ' + title;
+        }
+        document.getElementById('serverExport').title = title;
+    },
+
+    _turnInstructionInfo: function () {
+        const turnInstructionMode = +this.profile.getProfileVar('turnInstructionMode');
+        $('.format-turns-enabled')
+            .prop('hidden', turnInstructionMode <= 1)
+            .attr('title', i18next.t('export.turns_enabled'));
+    },
+
+    _getMimeType: function (format) {
+        const mimeTypeMap = {
+            gpx: 'application/gpx+xml;charset=utf-8',
+            kml: 'application/vnd.google-earth.kml+xml;charset=utf-8',
+            geojson: 'application/vnd.geo+json;charset=utf-8',
+            csv: 'text/tab-separated-values;charset=utf-8',
+            fit: 'application/vnd.ant.fit',
+        };
+
+        return mimeTypeMap[format];
+    },
+
+    _triggerDownload: function (url, name) {
+        const link = document.createElement('a');
+        link.href = url;
+        if (name) {
+            link.download = name;
+        }
+        link.hidden = true;
+        // in Firefox < 75 click() only works when element is attached to DOM tree
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    },
+
+    _exportServer: function (e) {
+        this._export(e, true);
+    },
+
+    _export: function (e, server = false) {
         var exportForm = document.forms['export'];
         var format = exportForm['format'].value || $('#export-format input:radio:checked').val();
         var name = exportForm['trackname'].value;
@@ -53,33 +108,33 @@ BR.Export = L.Class.extend({
 
         e.preventDefault();
 
-        if (BR.Browser.download) {
+        if (!server && BR.Browser.download) {
             const track = this._formatTrack(format, name, includeWaypoints);
-
-            const mimeTypeMap = {
-                gpx: 'application/gpx+xml',
-                kml: 'application/vnd.google-earth.kml+xml',
-                geojson: 'application/vnd.geo+json',
-                csv: 'text/tab-separated-values',
-            };
-
-            const mimeType = mimeTypeMap[format];
+            const fileName = (name || 'brouter') + '.' + format;
 
             const blob = new Blob([track], {
-                type: mimeType + ';charset=utf-8',
+                type: this._getMimeType(format),
             });
-            const objectUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = objectUrl;
-            link.download = (name || 'brouter') + '.' + format;
-            link.click();
+
+            const reader = new FileReader();
+            reader.onload = (e) => this._triggerDownload(reader.result, fileName);
+            reader.readAsDataURL(blob);
         } else {
-            var uri = this.router.getUrl(this.latLngs, this.pois.getMarkers(), null, format, nameUri, includeWaypoints);
-            var evt = document.createEvent('MouseEvents');
-            evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-            var link = document.createElement('a');
-            link.href = uri;
-            link.dispatchEvent(evt);
+            if (format === 'fit') {
+                // Server can't handle fit - downgrade to gpx
+                format = 'gpx';
+            }
+            var serverUrl = this.router.getUrl(
+                this.latLngs,
+                null,
+                this.pois.getMarkers(),
+                null,
+                format,
+                nameUri,
+                includeWaypoints
+            );
+
+            this._triggerDownload(serverUrl);
         }
     },
 
@@ -103,6 +158,8 @@ BR.Export = L.Class.extend({
                 return JSON.stringify(track, null, 2);
             case 'csv':
                 return BR.Csv.format(track);
+            case 'fit':
+                return BR.Fit.format(track);
             default:
                 break;
         }
@@ -284,8 +341,15 @@ BR.Export._concatTotalTrack = function (segments) {
 
         let featureCoordinates = feature.geometry.coordinates;
         if (segmentIndex > 0) {
-            // remove first segment coordinate, same as previous last
-            featureCoordinates = featureCoordinates.slice(1);
+            // remove duplicate coordinate: first segment coordinate same as previous last,
+            // remove the one without ele value (e.g. beeline)
+            const prevLast = coordinates[coordinates.length - 1];
+            const first = featureCoordinates[0];
+            if (prevLast.length < first.length) {
+                coordinates.pop();
+            } else {
+                featureCoordinates = featureCoordinates.slice(1);
+            }
         }
         coordinates = coordinates.concat(featureCoordinates);
     }

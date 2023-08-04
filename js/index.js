@@ -36,7 +36,6 @@
             pois,
             circlego,
             urlHash;
-
         // By default bootstrap-select use glyphicons
         $('.selectpicker').selectpicker({
             iconBase: 'fa',
@@ -83,6 +82,40 @@
             ],
         });
 
+        // https://github.com/Templarian/MaterialDesign/blob/d0b28330af6648ca4c50c14d55043d71f813b3ae/svg/vector-line.svg
+        // Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0), https://github.com/Templarian/MaterialDesign/blob/master/LICENSE
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                id="mdi-vector-line" width="24" height="24" viewBox="0 0 24 24" class="mdi active">
+                <path d="M15,3V7.59L7.59,15H3V21H9V16.42L16.42,9H21V3M17,5H19V7H17M5,17H7V19H5" />
+            </svg>`;
+        const beelineClickHandler = function (control) {
+            const enabled = routing.toggleBeelineDrawing();
+            control.state(enabled ? 'deactivate-beeline' : 'activate-beeline');
+        };
+        const title = i18next.t('keyboard.generic-shortcut', {
+            action: '$t(map.toggle-beeline)',
+            key: 'B',
+        });
+        const beelineButton = L.easyButton({
+            states: [
+                {
+                    stateName: 'activate-beeline',
+                    icon: svg.replace(' active', ''),
+                    onClick: beelineClickHandler,
+                    title: title,
+                },
+                {
+                    stateName: 'deactivate-beeline',
+                    icon: svg,
+                    onClick: beelineClickHandler,
+                    title: title,
+                },
+            ],
+        });
+        map.on('routing:beeline-start', () => beelineButton.state('deactivate-beeline'));
+        map.on('routing:beeline-end', () => beelineButton.state('activate-beeline'));
+
         var reverseRouteButton = L.easyButton(
             'fa-random',
             function () {
@@ -127,6 +160,8 @@
                     } else if (e.keyCode === 72) {
                         // char code for 'h'
                         $('#about').modal('show');
+                    } else if (e.key === '?') {
+                        $('#help').modal('show');
                     }
                 }
             },
@@ -179,22 +214,29 @@
 
             // abort pending requests from previous rerouteAllSegments
             if (!router.queue.idle()) {
-                router.queue.kill();
+                router.queue.remove((task) => {
+                    task.callback(L.BRouter.ABORTED_ERROR);
+                    return true;
+                });
             }
             routing.rerouteAllSegments(onUpdate);
         }
 
         function requestUpdate(updatable) {
             var track = routing.toPolyline(),
-                segments = routing.getSegments();
+                segments = routing.getSegments(),
+                segmentsLayer = routing._segments;
 
-            updatable.update(track, segments);
+            updatable.update(track, segments, segmentsLayer);
         }
 
         routingOptions = new BR.RoutingOptions();
-        routingOptions.on('update', updateRoute);
         routingOptions.on('update', function (evt) {
-            profile.update(evt.options);
+            if (urlHash.movingMap) return;
+
+            profile.update(evt.options, () => {
+                updateRoute(evt);
+            });
         });
 
         BR.NogoAreas.MSG_BUTTON = i18next.t('keyboard.generic-shortcut', {
@@ -256,7 +298,7 @@
 
         routingPathQuality = new BR.RoutingPathQuality(map, layersControl);
 
-        routing = new BR.Routing({
+        routing = new BR.Routing(profile, {
             routing: {
                 router: L.bind(router.getRouteSegment, router),
             },
@@ -266,16 +308,34 @@
         pois = new BR.PoiMarkers(routing);
 
         exportRoute = new BR.Export(router, pois, profile);
+        new BR.ShareRoute();
 
-        routing.on('routing:routeWaypointEnd routing:setWaypointsEnd', function (evt) {
+        routing.on('routing:routeWaypointEnd routing:setWaypointsEnd routing:rerouteSegmentEnd', function (evt) {
             search.clear();
             onUpdate(evt && evt.err);
         });
+
+        // Open export dialog immediately when the `export` query parameter is set;
+        // this is used for the QR code export:
+        var searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.has('export') && searchParams.get('export') === 'dialog') {
+            // event won't get called without lonlats
+            if (new URLSearchParams(window.location.hash).has('lonlats')) {
+                routing.once('routing:setWaypointsEnd', (evt) => {
+                    if (!evt.err && routing.getWaypoints().length > 1) {
+                        $('#exportButton').trigger('click');
+                    }
+                });
+            }
+        }
+
         map.on('routing:draw-start', function () {
             drawButton.state('deactivate-draw');
+            beelineButton.enable();
         });
         map.on('routing:draw-end', function () {
             drawButton.state('activate-draw');
+            beelineButton.disable();
         });
 
         function onUpdate(err) {
@@ -300,7 +360,7 @@
             } else {
                 stats.update(track, segments);
             }
-            trackMessages.update(track, segments);
+            trackMessages.update(track, segments, segmentsLayer);
             trackAnalysis.update(track, segments);
 
             exportRoute.update(latLngs, segments);
@@ -324,13 +384,14 @@
 
         nogos.addTo(map);
 
-        circlego = BR.circleGoArea(routing, nogos, pois);
+        // disabled for now, to be removed later
+        // circlego = BR.circleGoArea(routing, nogos, pois);
         if (circlego != null) {
             pois.circlego = circlego;
             circlego.addTo(map);
         }
 
-        var buttons = [drawButton, reverseRouteButton, nogos.getButton()];
+        var buttons = [drawButton, beelineButton, reverseRouteButton, nogos.getButton()];
         if (circlego) buttons.push(circlego.getButton());
         buttons.push(deletePointButton, deleteRouteButton);
 
@@ -363,16 +424,17 @@
         // initial option settings (after controls are added and initialized with onAdd)
         router.setOptions(nogos.getOptions());
         router.setOptions(routingOptions.getOptions());
-        profile.update(routingOptions.getOptions());
 
-        // restore active layers from local storage when called without hash
         // (check before hash plugin init)
         if (!location.hash) {
+            profile.update(routingOptions.getOptions());
+
+            // restore active layers from local storage when called without hash
             layersControl.loadActiveLayers();
         }
 
         var onHashChangeCb = function (url) {
-            var url2params = function (s) {
+            var url2params = function (s = '') {
                 s = s.replace(/;/g, '|');
                 var p = {};
                 var sep = '&';
@@ -385,19 +447,21 @@
                 }
                 return p;
             };
-            if (url == null) return;
 
             var opts = router.parseUrlParams(url2params(url));
             router.setOptions(opts);
             routingOptions.setOptions(opts);
             nogos.setOptions(opts);
-            profile.update(opts);
 
-            if (opts.lonlats) {
-                routing.draw(false);
-                routing.clear();
-                routing.setWaypoints(opts.lonlats);
-            }
+            const optsOrDefault = Object.assign({}, routingOptions.getOptions(), opts);
+            profile.update(optsOrDefault, () => {
+                if (opts.lonlats) {
+                    routing.draw(false);
+                    routing.clear();
+                    routing.setWaypoints(opts.lonlats, opts.beelineFlags);
+                }
+            });
+
             if (opts.pois) {
                 pois.setMarkers(opts.pois);
             }
@@ -419,7 +483,13 @@
         // this callback is used to append anything in URL after L.Hash wrote #map=zoom/lat/lng/layer
         urlHash.additionalCb = function () {
             var url = router
-                .getUrl(routing.getWaypoints(), pois.getMarkers(), circlego ? circlego.getCircle() : null, null)
+                .getUrl(
+                    routing.getWaypoints(),
+                    routing.getBeelineFlags(),
+                    pois.getMarkers(),
+                    circlego ? circlego.getCircle() : null,
+                    null
+                )
                 .substr('brouter?'.length + 1);
 
             // by default brouter use | as separator. To make URL more human-readable, we remplace them with ; for users

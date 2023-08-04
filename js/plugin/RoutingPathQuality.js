@@ -60,11 +60,173 @@ BR.RoutingPathQuality = L.Control.extend({
                     },
                 }),
             },
+            surface: {
+                title: i18next.t('map.route-quality-surface'),
+                icon: 'fa-road',
+                provider: new HotLineQualityProvider({
+                    hotlineOptions: {
+                        renderer: renderer,
+                        palette: {
+                            // normal range
+                            0.0: 'red',
+                            0.45: 'yellow',
+                            0.9: 'green',
+                            // special value for unknown
+                            1.0: '#888888',
+                        },
+                        // note: without this the lib will get min/max from the actual
+                        // values rendering the special values moot
+                        min: 0,
+                        max: 1,
+                        discreteStrokes: true,
+                    },
+                    valueFunction: (function () {
+                        let cache = [];
+                        return function (latLng) {
+                            var feature = latLng.feature;
+                            if (!feature.wayTags) {
+                                return 1.0;
+                            } else if (cache[feature.wayTags]) {
+                                return cache[feature.wayTags];
+                            }
+                            let data = new URLSearchParams(feature.wayTags.replace(/\s+/g, '&')); // eslint-disable-line compat/compat
+                            let surface = null;
+                            switch (data.get('surface')) {
+                                case 'paved':
+                                case 'chipseal':
+                                    surface = 0.8;
+                                    break;
+                                case 'asphalt':
+                                case 'concrete':
+                                    surface = 1;
+                                    break;
+                                case 'concrete:lanes':
+                                case 'concrete:plates':
+                                    surface = 0.6;
+                                case 'sett':
+                                case 'gravel':
+                                case 'pebblestone':
+                                case 'unpaved':
+                                    surface = 0.5;
+                                    break;
+                                case 'paving_stones':
+                                case 'compacted':
+                                case 'fine_gravel':
+                                    surface = 0.7;
+                                    break;
+                                case 'cobblestone':
+                                case 'dirt':
+                                case 'grass':
+                                    surface = 0.2;
+                                    break;
+                                case 'unhewn_cobblestone':
+                                    surface = 0.01;
+                                    break;
+                                case 'ground':
+                                case 'earth':
+                                    surface = 0.3;
+                                    break;
+                                case 'mud':
+                                case 'sand':
+                                    surface = 0.01;
+                                    break;
+                                case null:
+                                    break;
+                                /*default:
+                                    console.warn('unhandled surface type', data.get('surface'));
+                                    break;*/
+                            }
+
+                            // modifier tracktype; also sometimes only tracktype is available
+                            if (data.get('highway') === 'track') {
+                                switch (data.get('tracktype') || 'unknown') {
+                                    case 'grade1':
+                                        if (surface === null) {
+                                            surface = 0.9;
+                                        } /* else {
+                                            don't change
+                                        } */
+                                        break;
+                                    case 'grade2':
+                                        if (surface === null) {
+                                            surface = 0.7;
+                                        } else {
+                                            surface *= 0.9;
+                                        }
+                                        break;
+                                    case 'grade3':
+                                        if (surface === null) {
+                                            surface = 0.4;
+                                        } else {
+                                            surface *= 0.8;
+                                        }
+                                        break;
+                                    case 'grade4':
+                                        if (surface === null) {
+                                            surface = 0.1;
+                                        } else {
+                                            surface *= 0.6;
+                                        }
+                                        break;
+                                    case 'grade5':
+                                        if (surface === null) {
+                                            surface = 0.01;
+                                        } else {
+                                            surface *= 0.4;
+                                        }
+                                        break;
+                                }
+                            }
+
+                            if (surface !== null) {
+                                // modifier for surface quality
+                                switch (data.get('smoothness')) {
+                                    case 'excellent':
+                                        surface = Math.min(surface * 1.1, 1.0);
+                                        break;
+                                    case 'good':
+                                        surface = Math.min(surface * 1.05, 1.0);
+                                        break;
+                                    case 'intermediate':
+                                        surface *= 0.9;
+                                        break;
+                                    case 'bad':
+                                        surface *= 0.7;
+                                        break;
+                                    case 'very_bad':
+                                        surface *= 0.5;
+                                        break;
+                                    case 'horrible':
+                                        surface *= 0.4;
+                                        break;
+                                    case 'very_horrible':
+                                        surface *= 0.2;
+                                        break;
+                                    case 'impassable':
+                                        surface *= 0.01;
+                                        break;
+                                }
+                            }
+
+                            // limit normal values 0-0.9 so 1.0 can be unknown
+                            const final = surface === null ? 1.0 : surface * 0.9;
+                            cache[feature.wayTags] = final;
+                            return final;
+                        };
+                    })(),
+                }),
+            },
             cost: {
                 title: i18next.t('map.route-quality-shortcut', { action: '$t(map.route-quality-cost)', key: 'C' }),
                 icon: 'fa-usd',
                 provider: new HotLineQualityProvider({
                     hotlineOptions: {
+                        // skip (1 - pct) percent of largest values when calculating maximum
+                        pct: 0.95,
+                        // turns off gradients as they wash out colors of shorter segments
+                        discreteStrokes: true,
+                        // disables line simplification, so short segments won't disappear on some zoom levels
+                        smoothFactor: 0,
                         outlineColor: 'dimgray',
                         renderer: renderer,
                     },
@@ -227,6 +389,7 @@ var HotLineQualityProvider = L.Class.extend({
             var flatLines = [];
             for (var i = 0; segments && i < segments.length; i++) {
                 var segment = segments[i];
+                if (segment._routing?.beeline) continue;
                 var vals = this._computeLatLngVals(segment);
                 segmentLatLngs.push(vals);
                 Array.prototype.push.apply(flatLines, vals);
@@ -235,7 +398,8 @@ var HotLineQualityProvider = L.Class.extend({
             if (flatLines.length > 0) {
                 var hotlineOptions = L.extend({}, this.hotlineOptions);
                 if (!hotlineOptions.min && !hotlineOptions.max) {
-                    var minMax = this._calcMinMaxValues(flatLines);
+                    hotlineOptions.pct = hotlineOptions.pct ? hotlineOptions.pct : 1.0;
+                    var minMax = this._calcMinMaxValues(flatLines, hotlineOptions.pct);
                     hotlineOptions.min = minMax.min;
                     hotlineOptions.max = minMax.max;
                 }
@@ -272,14 +436,12 @@ var HotLineQualityProvider = L.Class.extend({
         return [latLng.lat, latLng.lng, val];
     },
 
-    _calcMinMaxValues: function (lines) {
-        var min = lines[0][2],
-            max = min;
-        for (var i = 1; lines && i < lines.length; i++) {
-            var line = lines[i];
-            max = Math.max(max, line[2]);
-            min = Math.min(min, line[2]);
-        }
+    _calcMinMaxValues: function (lines, pct) {
+        lines.sort(function (a, b) {
+            return a[2] - b[2];
+        });
+        var min = lines[0][2];
+        var max = lines[Math.ceil(pct * lines.length) - 1][2];
         if (min === max) {
             max = min + 1;
         }

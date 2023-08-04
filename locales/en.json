@@ -31,18 +31,21 @@
   "export": {
     "format": "Format",
     "format_csv": "CSV",
+    "format_fit": "FIT",
     "format_geojson": "GeoJSON",
     "format_gpx": "GPX",
     "format_kml": "KML",
     "include": "Include",
     "include_waypoints": "Waypoints",
-    "route-from-to": "{{from}} -> {{to}} ({{distance}}km)",
+    "route-from-to": "{{from}} - {{to}} ({{distance}}km)",
     "route-loop": "{{from}} ({{distance}}km)",
     "title": "Export route",
-    "trackname": "Name"
+    "trackname": "Name",
+    "turns_enabled": "Includes turn instructions"
   },
   "footer": {
     "ascend": "Ascend",
+    "beeline-warning": "Warning: no data for straight lines, values interpolated",
     "cost": "Cost",
     "distance": "Distance",
     "elevation-chart": "Toggle elevation chart",
@@ -62,11 +65,46 @@
     "total-energy": "Total Energy",
     "travel-time": "Travel time"
   },
+  "help": {
+    "keyboard-shortcuts": "Keyboard Shortcuts",
+    "shortcut-about": "Show “About” dialog",
+    "shortcut-add-poi": "Add “Point of Interest” (Esc exits this mode)",
+    "shortcut-allowed-zone": "Draw allowed zone",
+    "shortcut-color-coding": "Cycle through color-coding modes",
+    "shortcut-delete-route": "Delete route",
+    "shortcut-draw": "Enter draw mode",
+    "shortcut-elevation-profile": "Toggle elevation profile",
+    "shortcut-exit-draw": "Exit draw mode or close dialog",
+    "shortcut-export": "Export route",
+    "shortcut-help-dialog": "Open this help dialog",
+    "shortcut-load-track": "Load track",
+    "shortcut-load-track-as-route": "Load track as route",
+    "shortcut-locate": "Center current position (geolocation)",
+    "shortcut-move-map": "Move map",
+    "shortcut-mute-route": "Hide route temporarily (as long as key is down, “mute”)",
+    "shortcut-nogo": "Draw no-go area (Esc exits this mode)",
+    "shortcut-nogo-load": "Load no-go area",
+    "shortcut-profile-select": "Select routing profile",
+    "shortcut-reverse": "Reverse route",
+    "shortcut-search": "Search for locations",
+    "shortcut-share": "Share route",
+    "shortcut-sidebar-switch-tabs": "Cycle through tabs in sidebar",
+    "shortcut-sidebar-toggle": "Toggle sidebar",
+    "shortcut-straight-line-append": "Append straight line (in draw mode)",
+    "shortcut-straight-line-toggle": "Toggle straight line (in draw mode)",
+    "shortcut-strava-layer": "Toggle Strava layer",
+    "shortcut-undo": "Remove last point from route (“undo”)",
+    "shortcut-zoom-map": "Zoom map",
+    "title": "Help"
+  },
   "keyboard": {
     "backspace": "Backspace",
     "escape": "Escape",
     "generic-shortcut": "{{action}} ({{key}} key)",
     "shift": "Shift"
+  },
+  "keyboard-shortcuts": {
+    "title": "Help/Keyboard shortcuts"
   },
   "layers": {
     "add-base": "Add base layer",
@@ -79,7 +117,11 @@
     "custom-layer-url-label": "Custom layer URL/Query",
     "customize": "Customize layers",
     "opacity-slider": "Opacity slider",
+    "overpass-inspect-at-openstreetmap": "Inspect Object at OpenStreetMap",
     "overpass-loading-indicator": "Running Overpass API query ...",
+    "overpass-osm": "OSM",
+    "overpass-table-key": "Key",
+    "overpass-table-value": "Value",
     "remove-selection": "Remove selection"
   },
   "loadNogos": {
@@ -132,6 +174,7 @@
       "esri": "Esri World Imagery",
       "hikebike-hillshading": "Hillshading (Hike & Bike Map)",
       "hiking": "Hiking (Waymarked Trails)",
+      "hillshading": "Hillshading",
       "osm": "OpenStreetMap",
       "osmde": "OpenStreetMap.de",
       "outdoors": "Outdoors (Thunderforest)",
@@ -159,11 +202,13 @@
     "route-quality-cost": "Cost coding",
     "route-quality-incline": "Incline coding",
     "route-quality-shortcut": "{{action}} ({{key}} key to toggle)",
-    "route-tooltip-segment": "Drag to create a new waypoint",
+    "route-quality-surface": "Road surface/quality",
+    "route-tooltip-segment": "Drag to create a new waypoint. Click to toggle straight line.",
     "route-tooltip-waypoint": "Waypoint. Drag to move; Click to remove.",
     "strava-biking": "Show Strava biking segments",
     "strava-running": "Show Strava running segments",
     "strava-shortcut": "{{action}}\n({{key}} key to toggle layer, click to reload for current area)",
+    "toggle-beeline": "Toggle straight line",
     "zoomInTitle": "Zoom in",
     "zoomOutTitle": "Zoom out"
   },
@@ -195,7 +240,7 @@
       "fastbike": "Fastbike",
       "fastbike-asia-pacific": "Fastbike (Asia Pacific)",
       "fastbike-lowtraffic": "Fastbike (low traffic)",
-      "hiking-beta": "Hiking (beta)",
+      "hiking-mountain": "Hiking",
       "moped": "Moped",
       "rail": "Rail",
       "river": "River",
@@ -209,7 +254,34 @@
       "vm-forum-liegerad-schnell": "Recumbent bike (fast)",
       "vm-forum-velomobil-schnell": "Velomobile (fast)"
     },
-    "profile-tooltip": "\n({{key}} key to switch)"
+    "profile-tooltip": "\n({{key}} key to switch)",
+    "share": "Share",
+    "share-tooltip": "Share Route"
+  },
+  "qrcode": {
+    "large": "Large",
+    "medium": "Medium",
+    "msg-too-long": "Cannot create QR Code: Route definition is too long. Removing some waypoints may help fit all data into the QR Code.",
+    "msg-unknown-error": "Cannot create QR Code: An unknown error occurred. See the browser console for details. Maybe the route definition is too long. Removing some waypoints may help fit all data into the QR Code.",
+    "small": "Small"
+  },
+  "searchfav": {
+    "addfavorite": "add as favorite",
+    "ask_removeall": "Do you want to delete all search favorites?",
+    "export": "export favorites to file",
+    "import": "import favorites from file",
+    "openfavorites": "open favorite list",
+    "removeall": "delete all favorites"
+  },
+  "share": {
+    "copy-link": "Copy Link to this Route",
+    "introduction": "Share this route using a QR Code or by copying the link to the clipboard. The QR Code opens the route on your smartphone browser for viewing, changing or exporting.",
+    "mastodon-enter-server-name": "Enter Mastodon server name",
+    "title": "Share Route",
+    "tooltip-email": "Share by email",
+    "tooltip-facebook": "Share on Facebook",
+    "tooltip-mastodon": "Share on Mastodon",
+    "tooltip-whatsapp": "Share on WhatsApp"
   },
   "sidebar": {
     "analysis": {
@@ -295,14 +367,6 @@
     "title": "Load Track as Route",
     "tracklayer": "Track Layer",
     "tuning": "Tuning"
-  },
-  "searchfav": {
-	  "addfavorite": "add as favorite",
-	  "openfavorites": "open favorite list",
-	  "removeall": "delete all favorites",
-	  "export": "export favorites to file",
-	  "import": "import favorites from file",
-	  "ask_removeall": "Do you want to delete all search favorites?"
   },
   "warning": {
     "cannot-get-route": "Error getting route URL",
